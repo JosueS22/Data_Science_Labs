@@ -1,0 +1,353 @@
+---
+title: "Laboratorio 1 - Análisis exploratorio, PCA y Apriori"
+author: "Alexa Bravo, Josué Sagastume"
+date: "25/7/2021"
+output: html_document
+---
+
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+
+```{r, echo=FALSE}
+library(cluster) #Para calcular la silueta
+library(e1071)#para cmeans
+library(mclust) #mixtures of gaussians
+library(fpc) #para hacer el plotcluster
+library(NbClust) #Para determinar el n?mero de clusters ?ptimo
+library(factoextra) #Para hacer gr?ficos bonitos de clustering
+library(rpart)
+library(caret)
+library(tree)
+library(rpart.plot)
+library(ggplot2)
+library(randomForest)
+library(tidyverse)
+```
+
+### 1. Datos
+```{r , echo=TRUE}
+train <- read.csv("./data/train.csv")
+test <- read.csv("./data/test.csv")
+```
+
+### 1. Análisis exploratorio
+
+```{r}
+summary(train)
+```
+
+### 2 Tipo de variable
+0. ID
+1. MSSubClsas = categórica
+2. MSZoning = categórica
+3. LotFrontage = cuantitativa discreta
+4. LotArea = cuantitativa discreta
+5. Street = categórica
+6. Alley = categórica
+7. LotShape = categórica
+8. LandContour = categórica
+9. Building = categórica
+10.Utilities = categórica
+11.LotConfig = categórica
+12.LandSlope = categórica
+13.Neighborhood = categórica
+14.Condition1 = categórica
+15.Condition2 = categórica
+16.BldgType = categórica
+17.HouseStyle = categórica
+18.OverallQual = categórica
+19.OverallCond = categórica
+20.YearBuilt = cuantitativa discreta
+21.YearRemodAdd = cuantitativa discreta
+22.RoofStyle = categórica
+23.RoofMatl = categórica
+24.Exterior1st = categórica
+25.Exterior2nd = categórica
+26.MasVnrType = categórica
+27.MasVnrArea = cuantitativa discreta
+28.ExterQual = categórica
+29.ExterCond = categórica
+30.Foundation = categórica
+31.BsmtQual = categórica
+32.BsmtCond = categórica
+33.BsmtExposure = categórica
+34.BsmtFinType1 = categórica
+35.BsmtFinSF1 = cuantitativa continua
+36.BsmtFinType2 = categórica
+37.BsmtFinSF2 = cuantitativa continua
+38.BsmtUnfSF = cuantitativa continua
+39.TotalBsmtSF = cuantitativa continua
+40.Heating = categórica
+41.HeatingQC = categórica
+42.CentralAir = categórica
+43.Electrical = categórica
+44.1stFlrSF = cuantitativa continua
+45.2ndFlrSF = cuantitativa continua
+46.LowQualFinSF = cuantitativa continua
+47.GrLivArea = cuantitativa continua
+48.BsmtFullBath = cuantitativa discreta
+49.BsmtHalfBath = cuantitativa discreta
+50.FullBath = cuantitativa discreta
+51.HalfBath = cuantitativa discreta
+52.Bedroom = cuantitativa discreta
+53.Kitchen = cuantitativa discreta
+54.KitchenQual = categórica
+55.TotRmsAbvGrd = cuantitativa discreta
+56.Functional = categórica
+57.Fireplaces = cuantitativa discreta
+58.FireplaceQu = categórica
+59.GarageType = categórica
+60.GarageYrBlt = cuantitativa discreta
+61.GarageFinish = categórica
+62.GarageCars = cuantitativa discreta
+63.GarageArea = cuantitativa discreta
+64.GarageQual = categórica
+65.GarageCond = categórica
+66.PavedDrive = categórica
+67.WoodDeckSF = cuantitativa discreta
+68.OpenPorchSF = cuantitativa discreta
+69.EnclosedPorch = cuantitativa discreta
+70.3SsnPorch = cuantitativa discreta
+71.ScreenPorch = cuantitativa discreta
+72.PoolArea = cuantitativa discreta
+73.PoolQC = categórica
+74.Fence = categórica
+75.MiscFeature = categórica
+76.MiscVal = cuantitativa discreta
+77.MoSold = categórica
+78.YrSold = cuantitativa discreta
+79.SaleType = categórica
+80.SaleCondition = categórica
+
+
+CUANTITATIVAS
+3. LotFrontage = cuantitativa discreta
+4. LotArea = cuantitativa discreta
+20.YearBuilt = cuantitativa discreta
+21.YearRemodAdd = cuantitativa discreta
+27.MasVnrArea = cuantitativa discreta
+35.BsmtFinSF1 = cuantitativa continua
+37.BsmtFinSF2 = cuantitativa continua
+38.BsmtUnfSF = cuantitativa continua
+39.TotalBsmtSF = cuantitativa continua
+44.1stFlrSF = cuantitativa continua
+45.2ndFlrSF = cuantitativa continua
+46.LowQualFinSF = cuantitativa continua
+47.GrLivArea = cuantitativa continua
+48.BsmtFullBath = cuantitativa discreta
+49.BsmtHalfBath = cuantitativa discreta
+50.FullBath = cuantitativa discreta
+51.HalfBath = cuantitativa discreta
+52.Bedroom = cuantitativa discreta
+53.Kitchen = cuantitativa discreta
+55.TotRmsAbvGrd = cuantitativa discreta
+57.Fireplaces = cuantitativa discreta
+60.GarageYrBlt = cuantitativa discreta
+62.GarageCars = cuantitativa discreta
+63.GarageArea = cuantitativa discreta
+67.WoodDeckSF = cuantitativa discreta
+68.OpenPorchSF = cuantitativa discreta
+69.EnclosedPorch = cuantitativa discreta
+70.3SsnPorch = cuantitativa discreta
+71.ScreenPorch = cuantitativa discreta
+72.PoolArea = cuantitativa discreta
+76.MiscVal = cuantitativa discreta
+78.YrSold = cuantitativa discreta
+
+
+#### 3. Gráficos exploratorios
+
+```{r echo=FALSE}
+qqnorm(train$LotFrontage, col= "gray50", main = "Distribucion normal LotFrontage")
+qqline(train$LotFrontage)
+```
+Los datos se aproximan bastante a una distribución normal, sin embargo, tanto al inicio como al final se puede ver cómo estos datos se desvían de la tendencia que debería de seguir.
+
+```{r echo=FALSE}
+qqnorm(train$LotArea, col= "gray50", main = "Distribucion normal LotArea")
+qqline(train$LotArea)
+```
+Los datos se aproximan bastante a una distribución normal, pero se puede notar que al final de la gráfica, los datos se desvían, lo que indica que hay un sesgo.
+
+```{r}
+qqnorm(train$YearBuilt, col= "gray50", main = "Distribucion normal YearBuilt")
+qqline(train$YearBuilt)
+```
+Los datos se aproximan bastante a una distribución normal, pero se puede notar que al final de la gráfica, los datos se desvían, lo que indica que hay un sesgo.
+
+```{r echo=FALSE}
+qqnorm(train$YearRemodAdd, col= "gray50", main = "Distribucion normal YearRemodAdd")
+qqline(train$YearRemodAdd)
+```
+Los datos se aproximan bastante a una distribución normal, sin embargo, tanto al inicio como al final se puede ver cómo estos datos se desvían de la tendencia que debería de seguir.
+
+```{r echo=FALSE}
+qqnorm(train$MasVnrArea, col= "gray50", main = "Distribucion normal MasVnrArea")
+qqline(train$MasVnrArea)
+```
+Como se puede observar en la gráfica, los datos no tienen una tendencia normal, pues estos no siguen la línea indicada.
+
+```{r echo=FALSE}
+qqnorm(train$BsmtFinSF1, col= "gray50", main = "Distribucion normal BsmtFinSF1")
+qqline(train$BsmtFinSF1)
+```
+Los datos se aproximan bastante a una distribución normal, pero se puede notar que al inicio de la gráfica, los datos se desvían, lo que indica que hay un sesgo.
+
+```{r echo=FALSE}
+qqnorm(train$BsmtFinSF2, col= "gray50", main = "Distribucion normal BsmtFinSF2")
+qqline(train$BsmtFinSF2)
+```
+Los datos se aproximan bastante a una distribución normal, pero se puede notar que al final de la gráfica, los datos se desvían, lo que indica que hay un sesgo.
+
+```{r echo=FALSE}
+qqnorm(train$BsmtUnfSF, col= "gray50", main = "Distribucion normal BsmtUnfSF")
+qqline(train$BsmtUnfSF)
+```
+Los datos se aproximan bastante a una distribución normal, sin embargo, tanto al inicio como al final se puede ver cómo estos datos se desvían de la tendencia que debería de seguir.
+
+```{r echo=FALSE}
+qqnorm(train$Fireplaces, col= "gray50", main = "Distribucion normal Fireplaces")
+qqline(train$Fireplaces)
+```
+Como se puede observar en la gráfica, los datos no tienen una tendencia normal, aunque estos siguen la línea indicada, pero debido a la cantidad de valores que toman estos datos no se logra apreciar.
+
+```{r echo=FALSE}
+qqnorm(train$GarageYrBlt, col= "gray50", main = "Distribucion normal GarageYrBlt")
+qqline(train$GarageYrBlt)
+```
+Los datos se aproximan bastante a una distribución normal, pero se puede notar que al final de la gráfica, los datos se desvían, lo que indica que hay un sesgo.
+
+```{r echo=FALSE}
+qqnorm(train$GarageCars, col= "gray50", main = "Distribucion normal GarageCars")
+qqline(train$GarageCars)
+```
+Como se puede observar en la gráfica, los datos no tienen una tendencia normal, aunque estos siguen la línea indicada, pero debido a la cantidad de valores que toman estos datos no se logra apreciar.
+
+```{r echo=FALSE}
+qqnorm(train$GarageArea, col= "gray50", main = "Distribucion normal GarageArea")
+qqline(train$GarageArea)
+```
+Los datos se aproximan bastante a una distribución normal, sin embargo, tanto al inicio como al final se puede ver cómo estos datos se desvían de la tendencia que debería de seguir.
+
+```{r echo=FALSE}
+qqnorm(train$WoodDeckSF, col= "gray50", main = "Distribucion normal WoodDeckSF")
+qqline(train$WoodDeckSF)
+```
+Como se puede observar en la gráfica, los datos no tienen una tendencia normal, pues estos no siguen la línea indicada.
+
+```{r echo=FALSE}
+qqnorm(train$OpenPorchSF, col= "gray50", main = "Distribucion normal OpenPorchSF")
+qqline(train$OpenPorchSF)
+```
+Como se puede observar en la gráfica, los datos no tienen una tendencia normal, pues estos no siguen la línea indicada.
+
+```{r echo=FALSE}
+qqnorm(train$EnclosedPorch, col= "gray50", main = "Distribucion normal EnclosedPorch")
+qqline(train$EnclosedPorch)
+```
+Los datos se aproximan bastante a una distribución normal, pero se puede notar que al final de la gráfica, los datos se desvían, lo que indica que hay un sesgo.
+
+```{r echo=FALSE}
+qqnorm(train$X3SsnPorch, col= "gray50", main = "Distribucion normal 3SsnPorch")
+qqline(train$X3SsnPorch)
+```
+Los datos se aproximan bastante a una distribución normal, pero se puede notar que al final de la gráfica, los datos se desvían, lo que indica que hay un sesgo.
+
+```{r echo=FALSE}
+qqnorm(train$ScreenPorch, col= "gray50", main = "Distribucion normal ScreenPorch")
+qqline(train$ScreenPorch)
+```
+Los datos se aproximan bastante a una distribución normal, pero se puede notar que al final de la gráfica, los datos se desvían, lo que indica que hay un sesgo debido a que la mayoría de estos datos cuenta con una cantidad de 0, los datos que sí tienen valor provocan el sesgo.
+
+```{r echo=FALSE}
+qqnorm(train$PoolArea, col= "gray50", main = "Distribucion normal PoolArea")
+qqline(train$PoolArea)
+```
+Como se puede observar, ninguna de las casas cuenta con un área para piscina, por lo que, aunque los datos si sigan la línea, estos no se encuentran distribuidos normalmente.
+
+```{r echo=FALSE}
+qqnorm(train$MiscVal, col= "gray50", main = "Distribucion normal MiscVal")
+qqline(train$MiscVal)
+```
+Al igual que el caso anterior, la mayoría de los datos no cuentan con un valor para esta variable, por lo que se sesga la distribución normal.
+
+```{r echo=FALSE}
+qqnorm(train$YrSold, col= "gray50", main = "Distribucion normal YrSold")
+qqline(train$YrSold)
+```
+Como se puede observar en la gráfica, los datos no tienen una tendencia normal, aunque estos siguen la línea indicada, pero debido a la cantidad de valores que toman estos datos no se logra apreciar.
+
+```{r}
+qqnorm(train$TotalBsmtSF, col= "gray50", main = "Distribucion Normal TotalBsmtSF")
+qqline(train$TotalBsmtSF)
+```
+Los datos se aproximan bastante a una distribución normal, sin embargo, tanto al inicio como al final se puede ver cómo estos datos se desvían de la tendencia que debería de seguir.
+
+```{r}
+qqnorm(train$X1stFlrSF, col= "gray50", main = "Distribucion Normal 1stFlrSF")
+qqline(train$X1stFlrSF)
+```
+Los datos se aproximan bastante a una distribución normal, sin embargo, tanto al inicio como al final se puede ver cómo estos datos se desvían de la tendencia que debería de seguir.
+
+```{r}
+qqnorm(train$X2ndFlrSF, col= "gray50", main = "Distribucion Normal 2ndFlrSF")
+qqline(train$X2ndFlrSF)
+```
+Como se puede observar en la gráfica, los datos no tienen una tendencia normal, pues estos no siguen la línea indicada.
+
+```{r}
+qqnorm(train$LowQualFinSF, col= "gray50", main = "Distribucion Normal LowQualFinSF")
+qqline(train$LowQualFinSF)
+```
+Los datos se aproximan bastante a una distribución normal, pero se puede notar que al final de la gráfica, los datos se desvían, lo que indica que hay un sesgo debido a que la mayoría de estos datos cuenta con una cantidad de 0, los datos que sí tienen valor provocan el sesgo.
+
+```{r}
+qqnorm(train$GrLivArea, col= "gray50", main = "Distribucion Normal GrLivArea")
+qqline(train$GrLivArea)
+```
+Los datos se aproximan bastante a una distribución normal, sin embargo, tanto al inicio como al final se puede ver cómo estos datos se desvían de la tendencia que debería de seguir.
+
+```{r}
+qqnorm(train$BsmtFullBath, col= "gray50", main = "Distribucion Normal BsmtFullBath")
+qqline(train$BsmtFullBath)
+```
+Como se puede observar en la gráfica, los datos no tienen una tendencia normal, aunque estos siguen la línea indicada, pero debido a la cantidad de valores que toman estos datos no se logra apreciar.
+
+```{r}
+qqnorm(train$BsmtHalfBath, col= "gray50", main = "Distribucion Normal BsmtHalfBath")
+qqline(train$BsmtHalfBath)
+```
+Se puede ver que los datos no siguen una distribución normal debido a que los datos de esta variable solo toman dos valores.
+
+```{r}
+qqnorm(train$FullBath, col= "gray50", main = "Distribucion Normal FullBath")
+qqline(train$FullBath)
+```
+Como se puede observar en la gráfica, los datos no tienen una tendencia normal, aunque estos siguen la línea indicada, pero debido a la cantidad de valores que toman estos datos no se logra apreciar.
+
+```{r}
+qqnorm(train$HalfBath, col= "gray50", main = "Distribucion Normal HalfBath")
+qqline(train$HalfBath)
+```
+Como se puede observar en la gráfica, los datos no tienen una tendencia normal, aunque estos siguen la línea indicada, pero debido a la cantidad de valores que toman estos datos no se logra apreciar.
+
+```{r}
+qqnorm(train$Bedroom, col= "gray50", main = "Distribucion Normal Bedroom")
+qqline(train$Bedroom)
+```
+Como se puede observar en la gráfica, los datos no tienen una tendencia normal, aunque estos siguen la línea indicada, pero debido a la cantidad de valores que toman estos datos no se logra apreciar.
+
+```{r}
+qqnorm(train$KitchenAbvGr, col= "gray50", main = "Distribucion Normal KitchenAbvGr")
+qqline(train$KitchenAbvGr)
+```
+Como se puede observar en la gráfica, los datos no tienen una tendencia normal, aunque estos siguen la línea indicada, pero debido a la cantidad de valores que toman estos datos no se logra apreciar.
+
+```{r}
+qqnorm(train$TotRmsAbvGrd, col= "gray50", main = "Distribucion Normal TotRmsAbvGrd")
+qqline(train$TotRmsAbvGrd)
+```
+Como se puede observar en la gráfica, los datos no tienen una tendencia normal, aunque estos siguen la línea indicada, pero debido a la cantidad de valores que toman estos datos no se logra apreciar.
