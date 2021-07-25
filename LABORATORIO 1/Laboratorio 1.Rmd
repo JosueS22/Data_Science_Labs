@@ -351,3 +351,106 @@ qqnorm(train$TotRmsAbvGrd, col= "gray50", main = "Distribucion Normal TotRmsAbvG
 qqline(train$TotRmsAbvGrd)
 ```
 Como se puede observar en la gráfica, los datos no tienen una tendencia normal, aunque estos siguen la línea indicada, pero debido a la cantidad de valores que toman estos datos no se logra apreciar.
+
+
+#### 4. Aislar variables numéricas y categóricas
+
+casas <- casas[,c(4,12,17,34,38,46,62,67,81)]
+```{r echo=FALSE}
+
+train_cuanti <- train[,c(4,5,20,21,27,35,37,38,39,44,45,46,47,48,49,50,51,52,53,55,57,60,62,63,67,68,69,70,71,72,76,78)]
+
+train_cuali <- train[,c(1,2,3,6,7,8,9,10,11,12,13,14,15,16,17,18,19,22,23,24,25,26,28,29,30,31,32,33,34,36,40,41,42,43,54,56,58,59,61,64,65,66,73,74,75,77,79,80)]
+```
+
+```{r echo=FALSE}
+plot(x = train_cuali$MSSubClass, y= train_cuali$OverallQual, xlab= "Tamaño del lote", ylab= "Precio de venta", main = "Tamaño vs precios")
+abline(lm(train_cuali$OverallQual ~ train_cuali$MSSubClass), col = "blue")
+```
+
+
+
+```{r, echo=FALSE}
+plot(x = train$LotArea, y= train$SalePrice, xlab= "Tamaño del lote", ylab= "Precio de venta", main = "Tamaño vs precios")
+abline(lm(train$SalePrice ~ train$LotArea), col = "blue")
+```
+
+Podemos ver que el precio de la mayoría de las casas se concentra por debajo de los 50,000. Y también podemos ver que no existe una relación entre el precio de la casa y el tamaño del lote, pues los precios varían bastante entre los mismos metros cuadrados del lote.
+
+
+
+
+```{r, echo=FALSE}
+library(ggplot2)
+df <- as.data.frame(train$HouseStyle)
+ggplot(data=df, aes(x=train$HouseStyle)) + 
+  geom_bar(stat="count", 
+           width=0.5, 
+           color="black",
+           fill = "green") +
+  labs(x="Estilos", y="Cantidad", title = "Estilos de casa") 
+```
+
+Las casas que predominan el mercado son las de un nivel.
+
+```{r, echo=FALSE}
+library(ggplot2)
+df <- as.data.frame(train$YearBuilt)
+ggplot(data=df, aes(x=train$YearBuilt)) + 
+  geom_bar(stat="count", 
+           width=0.5, 
+           color="black",
+           fill = "green") +
+  labs(x="Año de construcción", y="Cantidad", title = "Año de construcción de la casa") 
+```
+
+La década en la que más casas se han construidos han sido de 1900 a los 2000.
+
+```{r, echo=FALSE}
+library(ggplot2)
+df <- as.data.frame(train$BldgType)
+ggplot(data=df, aes(x=train$BldgType)) + 
+  geom_bar(stat="count", 
+           width=0.5, 
+           color="black",
+           fill = "green") +
+  labs(x="Tipo de vivienda", y="Cantidad", title = "Tipos de vivienda") 
+```
+
+Los tipos de casas más populares, son aquellos que fueron diseñados para una sola familia.
+
+```{r, echo=FALSE}
+library(ggplot2)
+df <- as.data.frame(train$OverallQual)
+ggplot(data=df, aes(x=train$OverallQual)) + 
+  geom_bar(stat="count", 
+           width=0.5, 
+           color="black",
+           fill = "green") +
+  labs(x="Acabado de la casa", y="Cantidad", title = "Material general y acabado de la casa") 
+
+df2 <- as.data.frame(train$OverallCond)
+ggplot(data=df2, aes(x=train$OverallCond)) + 
+  geom_bar(stat="count", 
+           width=0.5, 
+           color="black",
+           fill = "green") +
+  labs(x="Estado de la casa", y="Cantidad", title = "Estado general de la casa") 
+```
+
+Las condiciones generales de las casas se encuentra en un rango de 5 a 10.
+
+```{r, echo=FALSE}
+library(ggplot2)
+df <- as.data.frame(train$Condition1)
+ggplot(data=df, aes(x=train$Condition1)) + 
+  geom_bar(stat="count", 
+           width=0.5, 
+           color="black",
+           fill = "green") +
+  labs(x="Proximidad a condiciones", y="Cantidad", title = "Proximidad de la casa a varias condiciones")
+```
+
+La proximidad más popular o que más se da es la normal.
+
+
