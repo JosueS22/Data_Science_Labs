@@ -25,6 +25,11 @@ library(rpart.plot)
 library(ggplot2)
 library(randomForest)
 library(tidyverse)
+
+library(rela)
+library(psych)
+library(FactoMineR)
+library(corrplot)
 ```
 
 ### 1. Datos
@@ -280,73 +285,73 @@ qqline(train$YrSold)
 ```
 Como se puede observar en la gráfica, los datos no tienen una tendencia normal, aunque estos siguen la línea indicada, pero debido a la cantidad de valores que toman estos datos no se logra apreciar.
 
-```{r}
+```{r, echo=FALSE}
 qqnorm(train$TotalBsmtSF, col= "gray50", main = "Distribucion Normal TotalBsmtSF")
 qqline(train$TotalBsmtSF)
 ```
 Los datos se aproximan bastante a una distribución normal, sin embargo, tanto al inicio como al final se puede ver cómo estos datos se desvían de la tendencia que debería de seguir.
 
-```{r}
+```{r, echo=FALSE}
 qqnorm(train$X1stFlrSF, col= "gray50", main = "Distribucion Normal 1stFlrSF")
 qqline(train$X1stFlrSF)
 ```
 Los datos se aproximan bastante a una distribución normal, sin embargo, tanto al inicio como al final se puede ver cómo estos datos se desvían de la tendencia que debería de seguir.
 
-```{r}
+```{r, echo=FALSE}
 qqnorm(train$X2ndFlrSF, col= "gray50", main = "Distribucion Normal 2ndFlrSF")
 qqline(train$X2ndFlrSF)
 ```
 Como se puede observar en la gráfica, los datos no tienen una tendencia normal, pues estos no siguen la línea indicada.
 
-```{r}
+```{r, echo=FALSE}
 qqnorm(train$LowQualFinSF, col= "gray50", main = "Distribucion Normal LowQualFinSF")
 qqline(train$LowQualFinSF)
 ```
 Los datos se aproximan bastante a una distribución normal, pero se puede notar que al final de la gráfica, los datos se desvían, lo que indica que hay un sesgo debido a que la mayoría de estos datos cuenta con una cantidad de 0, los datos que sí tienen valor provocan el sesgo.
 
-```{r}
+```{r, echo=FALSE}
 qqnorm(train$GrLivArea, col= "gray50", main = "Distribucion Normal GrLivArea")
 qqline(train$GrLivArea)
 ```
 Los datos se aproximan bastante a una distribución normal, sin embargo, tanto al inicio como al final se puede ver cómo estos datos se desvían de la tendencia que debería de seguir.
 
-```{r}
+```{r, echo=FALSE}
 qqnorm(train$BsmtFullBath, col= "gray50", main = "Distribucion Normal BsmtFullBath")
 qqline(train$BsmtFullBath)
 ```
 Como se puede observar en la gráfica, los datos no tienen una tendencia normal, aunque estos siguen la línea indicada, pero debido a la cantidad de valores que toman estos datos no se logra apreciar.
 
-```{r}
+```{r, echo=FALSE}
 qqnorm(train$BsmtHalfBath, col= "gray50", main = "Distribucion Normal BsmtHalfBath")
 qqline(train$BsmtHalfBath)
 ```
 Se puede ver que los datos no siguen una distribución normal debido a que los datos de esta variable solo toman dos valores.
 
-```{r}
+```{r, echo=FALSE}
 qqnorm(train$FullBath, col= "gray50", main = "Distribucion Normal FullBath")
 qqline(train$FullBath)
 ```
 Como se puede observar en la gráfica, los datos no tienen una tendencia normal, aunque estos siguen la línea indicada, pero debido a la cantidad de valores que toman estos datos no se logra apreciar.
 
-```{r}
+```{r, echo=FALSE}
 qqnorm(train$HalfBath, col= "gray50", main = "Distribucion Normal HalfBath")
 qqline(train$HalfBath)
 ```
 Como se puede observar en la gráfica, los datos no tienen una tendencia normal, aunque estos siguen la línea indicada, pero debido a la cantidad de valores que toman estos datos no se logra apreciar.
 
-```{r}
+```{r, echo=FALSE}
 qqnorm(train$Bedroom, col= "gray50", main = "Distribucion Normal Bedroom")
 qqline(train$Bedroom)
 ```
 Como se puede observar en la gráfica, los datos no tienen una tendencia normal, aunque estos siguen la línea indicada, pero debido a la cantidad de valores que toman estos datos no se logra apreciar.
 
-```{r}
+```{r, echo=FALSE}
 qqnorm(train$KitchenAbvGr, col= "gray50", main = "Distribucion Normal KitchenAbvGr")
 qqline(train$KitchenAbvGr)
 ```
 Como se puede observar en la gráfica, los datos no tienen una tendencia normal, aunque estos siguen la línea indicada, pero debido a la cantidad de valores que toman estos datos no se logra apreciar.
 
-```{r}
+```{r, echo=FALSE}
 qqnorm(train$TotRmsAbvGrd, col= "gray50", main = "Distribucion Normal TotRmsAbvGrd")
 qqline(train$TotRmsAbvGrd)
 ```
@@ -453,4 +458,27 @@ ggplot(data=df, aes(x=train$Condition1)) +
 
 La proximidad más popular o que más se da es la normal.
 
+
+#### PCA
+```{r, echo=FALSE}
+#datos<-read.csv("./data/Ejemplo.csv",stringsAsFactors = F)
+
+#rcor <- cor(train_cuanti)
+
+#rcor<-cor(datos[,2:8],use = "pairwise.complete.obs")
+#det(rcor)#Si el determinante de la matriz de correlaciÃ³n es cercano a 0 significa que hay multicolinealidad
+
+```
+
+#### REGLAS DE ASOCIACIÓN
+
+```{r, echo=FALSE}
+install.packages("arules")
+library(arules)
+# El mínimo nivel de soporte y confianza aceptados
+reglas<-apriori(train_cuanti, parameter = list(support = 0.2,
+                                        confidence = 0.70,
+                                        target = "rules"))
+
+```
 
